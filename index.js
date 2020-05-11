@@ -10,7 +10,7 @@
  */
 function calculateRouteFromAtoB (platform,avoidArea,destination) {
     var router = platform.getRoutingService();
-    console.log(avoidArea==null);
+    console.log(avoidArea!=null);
     if(avoidArea != null){
       var routeRequestParams = {
         mode: 'fastest;car',
@@ -206,7 +206,8 @@ function calculateRouteFromAtoB (platform,avoidArea,destination) {
   }
   
   var GETBOUNTARY_URL = 'https://maps.googleapis.com/maps/api/geocode/json',
-    ajaxRequest = new XMLHttpRequest(),
+    ajaxRequest1 = new XMLHttpRequest(),
+    ajaxRequest2 = new XMLHttpRequest(),
     address = '';
 
 
@@ -220,7 +221,7 @@ function calculateRouteFromAtoB (platform,avoidArea,destination) {
       }
   }
 
-  function getGeometryLocation(textBox, event){
+  function getGeometryLocation1(textBox, event){
     if (address != textBox.value){
       if (textBox.value.length >= 1){
 
@@ -232,36 +233,75 @@ function calculateRouteFromAtoB (platform,avoidArea,destination) {
           var params = '?' +
               'address=' +  encodeURIComponent(textBox.value) +   // The search text which is the basis of the query
               '&key=AIzaSyBGmGio79beBlUU1HMqPn36yuunILthoAQ';
-          ajaxRequest.open('GET', GETBOUNTARY_URL + params );
-          ajaxRequest.send();
+          ajaxRequest1.open('GET', GETBOUNTARY_URL + params );
+          ajaxRequest1.send();
       }
   }
   address = textBox.value;
   }
   
-  function onAutoCompleteSuccess() {
+  function getGeometryLocation2(textBox, event){
+    if (address != textBox.value){
+      if (textBox.value.length >= 1){
+
+          /**
+           * A full list of available request parameters can be found in the Geocoder Autocompletion
+           * API documentation.
+           *
+           */
+          var params = '?' +
+              'address=' +  encodeURIComponent(textBox.value) +   // The search text which is the basis of the query
+              '&key=AIzaSyBGmGio79beBlUU1HMqPn36yuunILthoAQ';
+          ajaxRequest2.open('GET', GETBOUNTARY_URL + params );
+          ajaxRequest2.send();
+      }
+  }
+  address = textBox.value;
+  }
+
+  function onAutoCompleteSuccess1() {
     /*
      * The styling of the suggestions response on the map is entirely under the developer's control.
      * A representitive styling can be found the full JS + HTML code of this example
      * in the functions below:
      */
     //addSuggestionsToPanel(this.response);  // In this context, 'this' means the XMLHttpRequest itself.
-    addBoundaryToPanel(this.response);
+    addBoundaryToPanel1(this.response);
     //console.dir(this.response);
 }
 
-function onAutoCompleteFailed() {
+function onAutoCompleteSuccess2() {
+  /*
+   * The styling of the suggestions response on the map is entirely under the developer's control.
+   * A representitive styling can be found the full JS + HTML code of this example
+   * in the functions below:
+   */
+  //addSuggestionsToPanel(this.response);  // In this context, 'this' means the XMLHttpRequest itself.
+  addBoundaryToPanel2(this.response);
+  //console.dir(this.response);
+}
+
+function onAutoCompleteFailed1() {
   alert('Ooops!');
 }
 
+function onAutoCompleteFailed2() {
+  alert('Ooops!');
+}
 function addSuggestionsToPanel(response){
   var suggestions = document.getElementById('suggestions');
   suggestions.innerHTML = JSON.stringify(response, null, ' ');
 }
 
+var isAvoidArea = new Boolean(false);
+var isDestination = new Boolean(false);
 
-function addBoundaryToPanel(response){  
-  if(isAvoidArea){
+
+
+
+function addBoundaryToPanel1(response){  
+  if(isAvoidArea == true){
+    console.log(isAvoidArea);
     avoidArea  = 
     {NorthEastLat: response.results[0].geometry.viewport.northeast.lat,
     NorthEastLng: response.results[0].geometry.viewport.northeast.lng,
@@ -269,63 +309,69 @@ function addBoundaryToPanel(response){
     SouthWestLng: response.results[0].geometry.viewport.southwest.lng,
     };
     console.log(avoidArea);
+  };
+}
+function addBoundaryToPanel2(response){  
+if(isDestination == true){
+  destination =
+  {
+    latitude: response.results[0].geometry.location.lat,
+    longitude: response.results[0].geometry.location.lng,
   }
-  if(isDestination){
-    destination =
-    {
-      latitude: response.results[0].geometry.location.lat,
-      longitude: response.results[0].geometry.location.lng,
-    }
-  }
+  console.log(destination);
+};
 }
 /**
  * This function will be called if a communication error occurs during the XMLHttpRequest
  */
 
 // Attach the event listeners to the XMLHttpRequest object
-ajaxRequest.addEventListener("load", onAutoCompleteSuccess);
-ajaxRequest.addEventListener("error", onAutoCompleteFailed);
-ajaxRequest.responseType = "json";
+ajaxRequest1.addEventListener("load", onAutoCompleteSuccess1);
+ajaxRequest1.addEventListener("error", onAutoCompleteFailed1);
+ajaxRequest1.responseType = "json";
 
+ajaxRequest2.addEventListener("load", onAutoCompleteSuccess2);
+ajaxRequest2.addEventListener("error", onAutoCompleteFailed2);
+ajaxRequest2.responseType = "json";
 
   Number.prototype.toMMSS = function () {
     return  Math.floor(this / 60)  +' minutes '+ (this % 60)  + ' seconds.';
   }
   
   var content =  '<strong style="font-size: large;">' + 'The Location You Want to Avoid'  +'</strong></br>';
-  content  += '<br/><input type="text" id="avoidArea" style="margin-left:5%; margin-right:5%; min-width:90%"  onkeyup="return getGeometryLocation(this, event);"><br/>';
+  content  += '<br/><input type="text" id="avoidArea" style="margin-left:5%; margin-right:5%; min-width:90%"  onkeyup="return getGeometryLocation1(this, event);"><br/>';
   content  +=  '<strong style="font-size: large;">' + 'Destination'  +'</strong></br>';
-  content  += '<br/><input type="text" id="destination" style="margin-left:5%; margin-right:5%; min-width:90%"  onkeyup="return getGeometryLocation(this, event);"><br/>';
+  content  += '<br/><input type="text" id="destination" style="margin-left:5%; margin-right:5%; min-width:90%"  onkeyup="return getGeometryLocation2(this, event);"><br/>';
   //content  += '<br/><strong>Response:</strong><br/>';
   //content  += '<div style="margin-left:5%; margin-right:5%;"><pre ><code  id="suggestions" style="font-size: small;">' +'{}' + '</code></pre></div>';
   suggestionsContainer.innerHTML = content;
 
- var isAvoidArea = new Boolean(false);
- var isDestination = new Boolean(false);
 
- $("#avoidArea").on("input", function() {
-
-  if ($(this).val() == "") {
-    isAvoidArea = false;
-  }
-  else {
-    isAvoidArea = true;
-  }
-});
-
-$("#destination").on("input", function() {
-
-  if ($(this).val() == "") {
-    isDestination = false;
-  }
-  else {
-    isDestination = true;
-  }
-});
 
   // Now use the map as required...
   //calculateRouteFromAtoB (platform,avoidArea)
   
 //document.getElementById("plot").onclick = calculateRouteFromAtoB (platform,avoidArea);
 
+$("#avoidArea").on("input", function() {
+
+  if ($(this).val() == "") {
+    isAvoidArea = false;
+  }
+  else {
+    isAvoidArea = true;
+    console.log('avoidarea');
+  }
+ });
+ 
+ $("#destination").on("input", function() {
+ 
+  if ($(this).val() == "") {
+    isDestination = false;
+  }
+  else {
+    isDestination = true;
+    console.log('destination');
+  }
+ });
 
